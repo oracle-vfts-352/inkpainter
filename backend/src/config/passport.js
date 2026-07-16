@@ -5,7 +5,7 @@ import { Strategy as GitHubStrategy } from "passport-github2";
 
 import { findOrCreateUser } from "../services/authService.js";
 
-import pool from "./database.js";
+import prisma from "../../prisma/client.js";
 
 
 //Google
@@ -107,28 +107,18 @@ passport.serializeUser((user,done)=>{
 
 });
 
-passport.deserializeUser(async(id,done)=>{
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
 
-    try{
-
-        const result = await pool.query(
-
-            "SELECT * FROM users WHERE id = $1",
-
-            [id]
-
-        );
-
-        done(null, result.rows[0]);
-
-    }
-
-    catch(err){
-
-        done(err);
-
-    }
-
+    done(null, user);
+  } catch (err) {
+    done(err);
+  }
 });
 
 export default passport;

@@ -1,76 +1,31 @@
-import pool from "../config/database.js";
+import prisma from "../../prisma/client.js";
 
-export async function getUserSettings(userId){
+export async function getUserSettings(userId) {
+  const existingSettings = await prisma.userSetting.findUnique({
+    where: {
+      user_id: userId,
+    },
+  });
 
-    let result = await pool.query(
+  if (existingSettings) {
+    return existingSettings;
+  }
 
-        `
-        SELECT *
-        FROM user_settings
-        WHERE user_id = $1
-        `,
-
-        [userId]
-
-    );
-
-    if(result.rows.length){
-
-        return result.rows[0];
-
-    }
-
-    result = await pool.query(
-
-        `
-        INSERT INTO user_settings
-        (user_id)
-        VALUES($1)
-        RETURNING *
-        `,
-
-        [userId]
-
-    );
-
-    return result.rows[0];
-
+  return await prisma.userSetting.create({
+    data: {
+      user_id: userId,
+    },
+  });
 }
 
-export async function updateWatermark(
-
-    userId,
-
-    watermark
-
-){
-
-    const result = await pool.query(
-
-        `
-        UPDATE user_settings
-
-        SET
-
-            watermark = $2,
-
-            updated_at = NOW()
-
-        WHERE user_id = $1
-
-        RETURNING *
-        `,
-
-        [
-
-            userId,
-
-            watermark
-
-        ]
-
-    );
-
-    return result.rows[0];
-
+export async function updateWatermark(userId, watermark) {
+  return await prisma.userSetting.update({
+    where: {
+      user_id: userId,
+    },
+    data: {
+      watermark,
+      updated_at: new Date(),
+    },
+  });
 }

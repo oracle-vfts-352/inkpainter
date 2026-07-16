@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Artwork {
+  id         Int       @id @default(autoincrement())
+  owner_id   Int?
+  guest_uuid String?
+  r2_key     String
+  watermark  Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+
+  user User? @relation(fields: [owner_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("artworks")
+}
+
+model GuestMigration {
+  id          Int       @id @default(autoincrement())
+  guest_uuid  String
+  user_id     Int?
+  migrated_at DateTime? @default(now()) @db.Timestamp(6)
+
+  user User? @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("guest_migrations")
+}
+
+model UserSetting {
+  user_id    Int       @id
+  language   String?   @default("en")
+  watermark  Boolean?  @default(true)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("user_settings")
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  google_id  String?   @unique
+  username   String
+  email      String?   @unique
+  avatar     String?
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  github_id  String?
+
+  artworks          Artwork[]
+  guestMigrations   GuestMigration[]
+  userSetting       UserSetting?
+
+  @@map("users")
+}

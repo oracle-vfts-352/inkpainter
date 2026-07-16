@@ -1,103 +1,52 @@
-import pool from "../config/database.js";
+import prisma from "../../prisma/client.js";
 
-export async function findOrCreateUser(profile){
+export async function findOrCreateUser(profile) {
+  const provider = profile.provider;
+  const providerId = profile.id;
 
-    const provider = profile.provider;
+  const username =
+    profile.displayName ||
+    profile.username ||
+    "User";
 
-    const providerId = profile.id;
+  const email =
+    profile.emails?.[0]?.value ||
+    null;
 
-    const username =
+  const avatar =
+    profile.photos?.[0]?.value ||
+    profile._json?.avatar_url ||
+    null;
 
-        profile.displayName ||
+  const where =
+    provider === "github"
+      ? { github_id: providerId }
+      : { google_id: providerId };
 
-        profile.username ||
+  const existing = await prisma.user.findFirst({
+    where,
+  });
 
-        "User";
+  if (existing) {
+    return existing;
+  }
 
-    const email =
+  const data =
+    provider === "github"
+      ? {
+          github_id: providerId,
+          username,
+          email,
+          avatar,
+        }
+      : {
+          google_id: providerId,
+          username,
+          email,
+          avatar,
+        };
 
-        profile.emails?.[0]?.value ||
-
-        null;
-
-    const avatar =
-
-        profile.photos?.[0]?.value ||
-
-        profile._json?.avatar_url ||
-
-        null;
-
-    const idColumn =
-
-        provider === "github"
-
-            ? "github_id"
-
-            : "google_id";
-
-    // Look for existing user
-
-    const existing = await pool.query(
-
-        `SELECT *
-
-        FROM users
-
-        WHERE ${idColumn} = $1`,
-
-        [providerId]
-
-    );
-
-    if(existing.rows.length){
-
-        return existing.rows[0];
-
-    }
-
-    // Create new user
-
-    const created = await pool.query(
-
-        `
-
-        INSERT INTO users
-
-        (
-
-            ${idColumn},
-
-            username,
-
-            email,
-
-            avatar
-
-        )
-
-        VALUES
-
-        ($1,$2,$3,$4)
-
-        RETURNING *
-
-        `,
-
-        [
-
-            providerId,
-
-            username,
-
-            email,
-
-            avatar
-
-        ]
-
-    );
-
-    return created.rows[0];
-
+  return await prisma.user.create({
+    data,
+  });
 }

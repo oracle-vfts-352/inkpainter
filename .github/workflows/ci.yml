@@ -1,0 +1,84 @@
+name: InkPainter CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: inkpainter
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: inkpainter
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install Backend Dependencies
+        working-directory: backend
+        run: npm install
+
+      - name: Generate Prisma Client
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:inkpainter@localhost:5432/inkpainter
+        run: npx prisma generate
+
+      - name: Validate Prisma Schema
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:inkpainter@localhost:5432/inkpainter
+        run: npx prisma validate
+
+      - name: Verify Backend
+        working-directory: backend
+        run: |
+          node --check src/server.js
+
+  frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - working-directory: frontend
+        run: npm install
+
+      - working-directory: frontend
+        run: npm run build

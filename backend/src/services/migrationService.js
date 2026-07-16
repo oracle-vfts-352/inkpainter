@@ -1,86 +1,35 @@
-import pool from "../config/database.js";
+import prisma from "../../prisma/client.js";
 
-export async function migrateGuestGallery(
-    guestUuid,
-    userId
-){
+export async function migrateGuestGallery(guestUuid, userId) {
+  // Prevent running the migration twice
+  const existing = await prisma.guestMigration.findFirst({
+    where: {
+      guest_uuid: guestUuid,
+    },
+  });
 
-    // Prevent running the migration twice
-    const existing = await pool.query(
+  if (existing) {
+    return;
+  }
 
-        `
-        SELECT 1
-        FROM guest_migrations
-        WHERE guest_uuid = $1
-        `,
+  await prisma.$transaction(async (tx) => {
+    // Move all guest artworks to the logged-in user
+    await tx.artwork.updateMany({
+      where: {
+        guest_uuid: guestUuid,
+      },
+      data: {
+        owner_id: userId,
+        guest_uuid: null,
+      },
+    });
 
-        [guestUuid]
-
-    );
-
-    if(existing.rowCount > 0){
-
-        return;
-
-    }
-
-    await pool.query("BEGIN");
-
-    try{
-
-        // Move all guest artworks to the logged-in user
-        await pool.query(
-
-            `
-            UPDATE artworks
-
-            SET
-
-                owner_id = $1,
-                guest_uuid = NULL
-
-            WHERE
-
-                guest_uuid = $2
-            `,
-
-            [
-                userId,
-                guestUuid
-            ]
-
-        );
-
-        // Record that this guest has already been migrated
-        await pool.query(
-
-            `
-            INSERT INTO guest_migrations
-            (
-                guest_uuid,
-                user_id
-            )
-            VALUES
-            ($1,$2)
-            `,
-
-            [
-                guestUuid,
-                userId
-            ]
-
-        );
-
-        await pool.query("COMMIT");
-
-    }
-
-    catch(err){
-
-        await pool.query("ROLLBACK");
-
-        throw err;
-
-    }
-
+    // Record that this guest has already been migrated
+    await tx.guestMigration.create({
+      data: {
+        guest_uuid: guestUuid,
+        user_id: userId,
+      },
+    });
+  });
 }

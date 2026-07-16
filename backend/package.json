@@ -2,10 +2,17 @@
   "name": "backend",
   "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "node src/server.js",
+    "worker": "node src/workers/imageWorker.js",
+    "prisma:generate": "prisma generate"
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1074.0",
     "@aws-sdk/s3-request-presigner": "^3.1075.0",
     "@huggingface/inference": "^4.13.19",
+    "@prisma/client": "^6.16.3",
     "bullmq": "^5.79.2",
     "connect-redis": "^9.0.0",
     "cors": "^2.8.6",
@@ -17,7 +24,7 @@
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
-    "pg": "^8.22.0",
+    "prisma": "^6.16.3",
     "redis": "^6.1.0",
     "replicate": "^1.4.0"
   }
