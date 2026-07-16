@@ -1,126 +1,189 @@
-InkPainter
+🇺🇸 English | 🇯🇵 [日本語はこちら](README_JP.md)
+# 🎨 InkPainter
 
-    Transform any image into a traditional Japanese sumi-e ink painting using AI.
+> Transform ordinary images into beautiful traditional **Japanese Sumi-e (墨絵)** ink paintings using AI.
 
-A full-stack web application that combines AI image generation, asynchronous background processing, cloud storage, user authentication, and multilingual support.
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
+![Express](https://img.shields.io/badge/Express-5-000000?logo=express)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql)
+![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma)
+![Redis](https://img.shields.io/badge/Redis-BullMQ-DC382D?logo=redis)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)
+![GitHub Actions](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions)
+
+InkPainter is a full-stack AI-powered web application that transforms uploaded images into traditional Japanese ink paintings using the **Replicate FLUX Kontext Pro** model.
+
+The project demonstrates modern software engineering practices including asynchronous job processing, cloud object storage, authentication, Docker containerization, reverse proxying, ORM integration, and continuous integration.
 
 ---
-✨ Features
-🎨 AI-powered image transformation (Replicate FLUX Kontext Pro)
-🖌️ Traditional Japanese sumi-e style conversion
-👤 Guest mode (no login required)
-🔐 Google OAuth authentication
-🔄 Guest artwork migration after login
-🖼️ Personal gallery
-📥 Download transformed images
-☁️ Cloudflare R2 image storage
-⚡ Background image processing with BullMQ + Redis
-🌐 English / Japanese language support
-📱 Responsive interface
+
+# ✨ Features
+
+- 🎨 AI-powered image transformation
+- 🖌️ Traditional Japanese Sumi-e art generation
+- 👤 Guest mode (no login required)
+- 🔐 Google OAuth authentication
+- 🔄 Guest artwork migration after login
+- 🖼️ Personal artwork gallery
+- 📥 Download generated images
+- ☁️ Cloudflare R2 cloud storage
+- ⚡ Background processing with BullMQ + Redis
+- 🌐 English / Japanese language support
+- 📱 Responsive user interface
+
 ---
 
-## 🛠 Tech Stack
+# 🛠 Tech Stack
 
-### Frontend
+## Frontend
 
 - React
 - Vite
 - CSS3
 - Context API
 
-### Backend
+## Backend
 
-- Node
-- Express
+- Node.js
+- Express.js
+- Prisma ORM
 - PostgreSQL
 - BullMQ
 - Redis
 
-### DataBase
+## AI
 
--   PostgreSQL
+- Replicate API
+- FLUX Kontext Pro
 
-### AI
+## Authentication
 
--   Replicate API
--   FLUX Kontext Pro
+- Passport.js
+- Google OAuth 2.0
+- Express Session
+- Redis Session Store
 
-### Cloud
+## Cloud
 
--   Cloudflare R2
+- Cloudflare R2
 
-### Authentication
+## Infrastructure
 
--   Passport.js
--   Google OAuth 2.0
--   Express Session
--   Redis Session Store
-
-### Infrastructure
-
--   Docker
--   Nginx
+- Docker
+- Docker Compose
+- Nginx
+- GitHub Actions CI
 
 ---
 
-## 📂 Project Structure
+# 🏗 Architecture
 
+```text
+                    User
+                     │
+                     ▼
+                 React (Vite)
+                     │
+                     ▼
+                   Nginx
+                     │
+        ┌────────────┴────────────┐
+        ▼                         ▼
+   Express API               Static Assets
+        │
+ ┌──────┴──────────────┐
+ ▼                     ▼
+PostgreSQL         Redis + BullMQ
+   │                     │
+   ▼                     ▼
+Prisma ORM        Image Worker
+                         │
+                         ▼
+                 Replicate AI API
+                         │
+                         ▼
+                  Cloudflare R2
 ```
+
+---
+
+# 📂 Project Structure
+
+```text
 InkPainter
 │
 ├── frontend/
 │   ├── src/
 │   ├── public/
-│   └── ...
+│   └── Dockerfile
 │
 ├── backend/
+│   ├── prisma/
 │   ├── src/
 │   │   ├── config/
-│   │   ├── controllers/
 │   │   ├── middleware/
 │   │   ├── queues/
 │   │   ├── routes/
 │   │   ├── services/
-│   │   └── workers/
+│   │   ├── workers/
+│   │   └── ...
+│   ├── Dockerfile
+│   └── Dockerfile.worker
 │
 ├── nginx/
-├── docs/
-└── package.json
+│   └── nginx.conf
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+│
+├── docker-compose.yml
+└── README.md
 ```
 
 ---
 
-## 🚀 Getting Started
+# 🚀 Getting Started
 
-### Clone the repository
+## Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/InkPainter.git
+git clone https://github.com/oracle-vfts-352/inkpainter.git
+
+cd inkpainter
 ```
 
-### Install dependencies
+---
+
+## Install Dependencies
+
+### Backend
 
 ```bash
-cd frontend
+cd backend
+
 npm install
 ```
 
-Backend
+### Frontend
 
 ```bash
-cd ../backend
+cd ../frontend
+
 npm install
 ```
 
-### Configure environment variables
+---
 
-Create a `.env` file inside the backend directory.
+# ⚙ Environment Variables
 
-Example:
+Create a `.env` file inside **backend/**
 
 ```env
 DATABASE_URL=
+
 SESSION_SECRET=
+
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 
@@ -135,15 +198,17 @@ R2_BUCKET_NAME=
 REPLICATE_API_TOKEN=
 ```
 
-### Run the application
+---
 
-Frontend
+# ▶ Running Locally
+
+Backend
 
 ```bash
 npm run dev
 ```
 
-Backend
+Frontend
 
 ```bash
 npm run dev
@@ -157,22 +222,84 @@ node src/workers/imageWorker.js
 
 ---
 
-## 📌 Roadmap
+# 🐳 Running with Docker
 
-- [x] Image upload
-- [x] AI image transformation
-- [x] Artwork gallery
-- [x] Google Authentication
-- [x] Guest mode
-- [ ] Prompt customization
-- [ ] Multiple art styles
-- [ ] Docker deployment
-- [ ] CI/CD pipeline
+```bash
+docker compose up --build
+```
+
+This starts
+
+- PostgreSQL
+- Redis
+- Backend API
+- BullMQ Worker
+- React Frontend
+- Nginx Reverse Proxy
 
 ---
 
-## 👨‍💻 Author
+# 🚀 Continuous Integration
 
-Created by oracle-vfts-352
+GitHub Actions automatically verifies every push by
 
-Built as a learning project to explore modern full-stack development, cloud infrastructure, and AI-powered image generation.
+- Installing dependencies
+- Generating Prisma Client
+- Verifying backend syntax
+- Building the frontend
+
+This helps prevent broken commits from being merged.
+
+---
+
+# 📌 Roadmap
+
+- [x] AI Image Generation
+- [x] Google OAuth
+- [x] Guest Mode
+- [x] Guest Artwork Migration
+- [x] Personal Gallery
+- [x] Cloudflare R2 Storage
+- [x] Background Workers (BullMQ)
+- [x] Prisma ORM
+- [x] Docker Support
+- [x] Docker Compose
+- [x] Nginx Reverse Proxy
+- [x] GitHub Actions CI
+
+---
+
+# 📚 What I Learned
+
+This project helped me gain practical experience with
+
+- Full-stack web development
+- AI API integration
+- Background job processing
+- Database design with Prisma ORM
+- Docker containerization
+- Reverse proxy configuration with Nginx
+- Cloud object storage
+- Authentication and session management
+- GitHub Actions CI
+- Production-oriented project architecture
+
+---
+
+# 👨‍💻 Author
+
+**ORACLE (oracle-vfts-352)**
+
+InkPainter was built as a portfolio project to explore modern full-stack software engineering, cloud infrastructure, asynchronous processing, and AI-powered image generation.
+
+---
+
+# 📄 License
+
+This project is intended for educational and portfolio purposes.
+
+## Project Status
+
+✅ Completed
+
+InkPainter is complete as a portfolio project and is no longer under active development. It will continue to serve as a demonstration of full-stack development, AI integration, cloud infrastructure, Docker, and CI/CD practices.
